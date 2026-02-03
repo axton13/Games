@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Dragon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #2c1810 0%, #4a3728 100%);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: 
+                radial-gradient(circle at 50px 100px, rgba(255, 140, 0, 0.3) 0%, transparent 50px),
+                radial-gradient(circle at 350px 250px, rgba(255, 140, 0, 0.3) 0%, transparent 50px),
+                radial-gradient(circle at 50px 400px, rgba(255, 140, 0, 0.3) 0%, transparent 50px),
+                radial-gradient(circle at 350px 550px, rgba(255, 140, 0, 0.3) 0%, transparent 50px),
+                repeating-linear-gradient(90deg, #3d2817 0px, #4a3728 20px, #3d2817 40px),
+                repeating-linear-gradient(0deg, #3d2817 0px, #5c4033 30px, #3d2817 60px),
+                linear-gradient(to bottom, #3d2817 0%, #5c4033 50%, #4a3728 100%);
+            border: 3px solid #333;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .torch {
+            position: absolute;
+            font-size: 30px;
+            z-index: 1;
+        }
+        
+        #dragon {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            left: 80px;
+            font-size: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+            transform: scaleX(-1);
+        }
+        
+        .pipe {
+            position: absolute;
+            width: 80px;
+        }
+        
+        .pipe-top {
+            top: 0;
+            background: linear-gradient(to bottom, #a8a8a8 0%, #888888 50%, #666666 100%);
+            border-radius: 0 0 10px 10px;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-size: 40px;
+            padding-bottom: 10px;
+        }
+        
+        .pipe-bottom {
+            bottom: 0;
+            background: linear-gradient(to top, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+            border-radius: 10px 10px 0 0;
+            box-shadow: inset 0 5px 10px rgba(255,215,0,0.5);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            font-size: 40px;
+            padding-top: 10px;
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        #highScore {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFA500;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            z-index: 100;
+        }
+        
+        #startScreen h1, #gameOverScreen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            color: #FFD700;
+        }
+        
+        #startScreen p, #gameOverScreen p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #8B4513;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+        
+        .button:hover {
+            background: #A0522D;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.6);
+        }
+        
+        #finalScore {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+        
+        #finalHighScore {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #FFA500;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div class="torch" style="left: 20px; top: 80px;">🔥</div>
+        <div class="torch" style="right: 20px; top: 230px;">🔥</div>
+        <div class="torch" style="left: 20px; top: 380px;">🔥</div>
+        <div class="torch" style="right: 20px; top: 530px;">🔥</div>
+        
+        <div id="score">0</div>
+        <div id="highScore">High Score: 0</div>
+        <div id="dragon">🐉</div>
+        
+        <div id="startScreen">
+            <h1>🐉 Dragon's Cave</h1>
+            <p>Click or press Space to flap!<br>Avoid the stalactites and treasure!</p>
+            <button class="button" onclick="startGame()">Start Game</button>
+        </div>
+        
+        <div id="gameOverScreen" style="display: none;">
+            <h1>Game Over!</h1>
+            <div id="finalScore"></div>
+            <div id="finalHighScore"></div>
+            <button class="button" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const dragon = document.getElementById('dragon');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const finalHighScoreDisplay = document.getElementById('finalHighScore');
+        
+        let dragonY = 250;
+        let dragonVelocity = 0;
+        let score = 0;
+        let highScore = 0;
+        let gameActive = false;
+        let gameLoop;
+        let pipeInterval;
+        let pipes = [];
+        
+        const gravity = 0.5;
+        const flapStrength = -10;
+        const pipeSpeed = 3;
+        const pipeGap = 220;
+        const pipeWidth = 80;
+        
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            resetGame();
+            gameActive = true;
+            gameLoop = setInterval(update, 20);
+            pipeInterval = setInterval(createPipe, 2000);
+        }
+        
+        function resetGame() {
+            dragonY = 250;
+            dragonVelocity = 0;
+            score = 0;
+            scoreDisplay.textContent = score;
+            pipes.forEach(pipe => {
+                if (pipe.top) pipe.top.remove();
+                if (pipe.bottom) pipe.bottom.remove();
+            });
+            pipes = [];
+        }
+        
+        function restartGame() {
+            clearInterval(gameLoop);
+            clearInterval(pipeInterval);
+            startGame();
+        }
+        
+        function flap() {
+            if (gameActive) {
+                dragonVelocity = flapStrength;
+                dragon.style.transform = 'scaleX(-1) rotate(20deg)';
+                setTimeout(() => {
+                    if (gameActive) dragon.style.transform = 'scaleX(-1) rotate(0deg)';
+                }, 100);
+            }
+        }
+        
+        function createPipe() {
+            const pipeTopHeight = Math.random() * (400 - pipeGap - 100) + 50;
+            const pipeBottomHeight = 600 - pipeTopHeight - pipeGap;
+            
+            const pipeTop = document.createElement('div');
+            pipeTop.className = 'pipe pipe-top';
+            pipeTop.style.height = pipeTopHeight + 'px';
+            pipeTop.style.left = '400px';
+            pipeTop.textContent = '🪨';
+            
+            const pipeBottom = document.createElement('div');
+            pipeBottom.className = 'pipe pipe-bottom';
+            pipeBottom.style.height = pipeBottomHeight + 'px';
+            pipeBottom.style.left = '400px';
+            pipeBottom.textContent = '💰';
+            
+            gameContainer.appendChild(pipeTop);
+            gameContainer.appendChild(pipeBottom);
+            
+            pipes.push({
+                top: pipeTop,
+                bottom: pipeBottom,
+                x: 400,
+                scored: false
+            });
+        }
+        
+        function update() {
+            if (!gameActive) return;
+            
+            dragonVelocity += gravity;
+            dragonY += dragonVelocity;
+            
+            if (dragonVelocity > 0) {
+                dragon.style.transform = 'scaleX(-1) rotate(-20deg)';
+            }
+            
+            dragon.style.top = dragonY + 'px';
+            
+            if (dragonY < 0 || dragonY > 530) {
+                endGame();
+            }
+            
+            pipes.forEach((pipe, index) => {
+                pipe.x -= pipeSpeed;
+                pipe.top.style.left = pipe.x + 'px';
+                pipe.bottom.style.left = pipe.x + 'px';
+                
+                if (pipe.x < -pipeWidth) {
+                    pipe.top.remove();
+                    pipe.bottom.remove();
+                    pipes.splice(index, 1);
+                }
+                
+                if (!pipe.scored && pipe.x < 80) {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreDisplay.textContent = 'High Score: ' + highScore;
+                    }
+                    pipe.scored = true;
+                }
+                
+                const dragonLeft = 80;
+                const dragonRight = 80 + 70;
+                const dragonTop = dragonY;
+                const dragonBottom = dragonY + 70;
+                
+                const pipeLeft = pipe.x;
+                const pipeRight = pipe.x + pipeWidth;
+                
+                if (dragonRight > pipeLeft && dragonLeft < pipeRight) {
+                    const topPipeHeight = parseInt(pipe.top.style.height);
+                    const bottomPipeTop = 600 - parseInt(pipe.bottom.style.height);
+                    
+                    if (dragonTop < topPipeHeight || dragonBottom > bottomPipeTop) {
+                        endGame();
+                    }
+                }
+            });
+        }
+        
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameLoop);
+            clearInterval(pipeInterval);
+            finalScoreDisplay.textContent = 'Score: ' + score;
+            finalHighScoreDisplay.textContent = 'High Score: ' + highScore;
+            if (score === highScore && score > 0) {
+                finalHighScoreDisplay.textContent += ' 🏆 NEW RECORD!';
+            }
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        gameContainer.addEventListener('click', flap);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flap();
+            }
+        });
+    </script>
+</body>
+</html>
