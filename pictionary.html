@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pictionary Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .difficulty-btn {
+            padding: 0.875rem 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .difficulty-btn:hover {
+            transform: scale(1.05);
+            background: #d1d5db;
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .word-display {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            display: none;
+        }
+
+        .word-display.visible {
+            display: block;
+        }
+
+        .word-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .word {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .timer-display {
+            background: #f3f4f6;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .timer-display.visible {
+            display: block;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .timer.warning {
+            color: #dc2626;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .timer-btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+
+        .timer-btn.play {
+            background: #3b82f6;
+        }
+
+        .timer-btn.play:hover {
+            background: #2563eb;
+        }
+
+        .timer-btn.reset {
+            background: #6b7280;
+        }
+
+        .timer-btn.reset:hover {
+            background: #4b5563;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Pictionary Generator</h1>
+
+        <div class="section">
+            <label>Select Difficulty:</label>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+                <button class="difficulty-btn active" data-difficulty="medium">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <label>Timer Duration (seconds):</label>
+            <input type="number" id="timerDuration" value="60" min="10" max="300">
+        </div>
+
+        <div class="section">
+            <button class="generate-btn" id="generateBtn">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Generate Word
+            </button>
+        </div>
+
+        <div class="section">
+            <div class="word-display" id="wordDisplay">
+                <div class="word-label">Your Word:</div>
+                <div class="word" id="word"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="timer-display" id="timerDisplay">
+                <div class="timer" id="timer">1:00</div>
+                <div class="timer-controls">
+                    <button class="timer-btn play" id="playPauseBtn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span id="playPauseText">Start</span>
+                    </button>
+                    <button class="timer-btn reset" id="resetBtn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prompts = {
+            easy: [
+                'Cat', 'Dog', 'House', 'Tree', 'Sun', 'Moon', 'Star', 'Car', 'Boat', 'Fish',
+                'Bird', 'Apple', 'Flower', 'Book', 'Chair', 'Table', 'Cup', 'Hat', 'Shoe', 'Ball',
+                'Heart', 'Smile', 'Pizza', 'Cake', 'Ice Cream', 'Rainbow', 'Clock', 'Door', 'Window', 'Bed'
+            ],
+            medium: [
+                'Elephant', 'Guitar', 'Telescope', 'Volcano', 'Lighthouse', 'Penguin', 'Cactus', 'Waterfall',
+                'Helicopter', 'Pyramid', 'Astronaut', 'Unicorn', 'Dragon', 'Castle', 'Pirate', 'Robot',
+                'Snowman', 'Tornado', 'Mermaid', 'Dinosaur', 'Rocket', 'Treasure', 'Crown', 'Bridge',
+                'Campfire', 'Scarecrow', 'Sunglasses', 'Backpack', 'Butterfly', 'Saxophone'
+            ],
+            hard: [
+                'Procrastination', 'Democracy', 'Photosynthesis', 'Gravity', 'Evolution', 'Meditation',
+                'Nostalgia', 'Wifi Signal', 'Social Media', 'Climate Change', 'Virtual Reality',
+                'Artificial Intelligence', 'Optical Illusion', 'Supply and Demand', 'The Food Chain',
+                'Déjà Vu', 'Adrenaline Rush', 'Writer\'s Block', 'Murphy\'s Law', 'Binge Watching',
+                'Going Viral', 'Peer Pressure', 'Comfort Zone', 'Breaking the Ice', 'Mixed Signals',
+                'Multitasking', 'Overthinking', 'Conspiracy Theory', 'Culture Shock', 'Plot Twist',
+                'Fake News', 'Echo Chamber', 'Guilty Pleasure', 'Mid-life Crisis', 'Tunnel Vision',
+                'Herd Mentality', 'Reverse Psychology', 'Cognitive Dissonance', 'Stockholm Syndrome',
+                'Imposter Syndrome', 'Analysis Paralysis', 'Schadenfreude', 'Wanderlust', 'Serendipity',
+                'Existential Crisis', 'FOMO', 'Gaslighting', 'Sunk Cost Fallacy', 'Confirmation Bias',
+                'Butterfly Effect', 'Domino Effect', 'Placebo Effect', 'Streisand Effect', 'Mandela Effect',
+                'Catch-22', 'Double Standard', 'Glass Ceiling', 'Red Tape', 'Brain Drain',
+                'Information Overload', 'Digital Detox', 'Doomscrolling', 'Toxic Positivity', 'Virtue Signaling',
+                'Cancel Culture', 'Humble Brag', 'Passive Aggressive', 'Emotional Baggage', 'Guilty Conscience',
+                'Self-fulfilling Prophecy', 'Vicious Circle', 'Silver Lining', 'Double-edged Sword', 'Slippery Slope',
+                'Peter Principle', 'Dunning-Kruger Effect', 'Paradox', 'Irony',
+                'Hypocrite', 'Stereotype', 'Prejudice', 'Discrimination', 'Privilege',
+                'Empathy', 'Sympathy', 'Apathy', 'Amnesia', 'Insomnia',
+                'Claustrophobia', 'Agoraphobia', 'Vertigo', 'Paranoia', 'Euphoria',
+                'Melancholy', 'Anxiety', 'Depression', 'Stress', 'Burnout',
+                'Peer Review', 'Fact Check', 'Propaganda', 'Censorship', 'Freedom of Speech',
+                'Net Neutrality', 'Data Privacy', 'Cybersecurity', 'Identity Theft', 'Catfishing',
+                'Trolling', 'Clickbait', 'Algorithm', 'Cryptocurrency', 'Blockchain',
+                'Cloud Computing', 'Machine Learning', 'Big Data', 'Internet of Things', 'Augmented Reality',
+                'Quantum Physics', 'String Theory', 'Black Hole', 'Parallel Universe', 'Time Travel',
+                'Genetic Engineering', 'Cloning', 'Stem Cells', 'Vaccine', 'Antibiotic Resistance',
+                'Global Warming', 'Carbon Footprint', 'Renewable Energy', 'Fossil Fuels', 'Deforestation',
+                'Extinction', 'Endangered Species', 'Ecosystem', 'Biodiversity', 'Sustainability',
+                'Recession', 'Inflation', 'Stock Market', 'Cryptocurrency Crash', 'Economic Bubble',
+                'Gentrification', 'Urban Sprawl', 'Brain Freeze', 'Muscle Memory', 'Growing Pains',
+                'Identity Crisis', 'Generation Gap', 'Culture War', 'Social Justice', 'Equality',
+                'Diversity', 'Inclusion', 'Microaggression', 'Unconscious Bias', 'Systemic Racism',
+                'Glass Cliff', 'Bamboo Ceiling', 'Sticky Floor', 'Wage Gap', 'Gig Economy',
+                'Work-life Balance', 'Remote Work', 'Zoom Fatigue', 'Quiet Quitting', 'The Great Resignation',
+                'Side Hustle', 'Passive Income', 'Influencer', 'Viral Marketing', 'Brand Loyalty',
+                'Planned Obsolescence', 'Consumerism', 'Minimalism', 'Marie Kondo Effect', 'Impulse Buying',
+                'Retail Therapy', 'Buyer\'s Remorse', 'Window Shopping', 'Bargain Hunting', 'Price War',
+                'Supply Chain', 'Outsourcing', 'Monopoly', 'Patent Troll', 'Intellectual Property',
+                'Copyright Infringement', 'Fair Use', 'Public Domain', 'Creative Commons', 'Open Source',
+                'Crowdfunding', 'Crowdsourcing', 'Viral Challenge', 'Meme Culture',
+                'Woke', 'Politically Correct', 'Dog Whistle', 'Astroturfing', 'Gerrymandering',
+                'Filibuster', 'Lame Duck', 'Swing State', 'Electoral College', 'Checks and Balances',
+                'Separation of Powers', 'Bureaucracy', 'Lobbying', 'Special Interest', 'Grassroots Movement',
+                'Civil Disobedience', 'Peaceful Protest', 'Riot', 'Coup', 'Revolution'
+            ]
+        };
+
+        let difficulty = 'medium';
+        let timeLeft = 60;
+        let timerDuration = 60;
+        let isTimerRunning = false;
+        let timerInterval = null;
+
+        // Elements
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const timerDurationInput = document.getElementById('timerDuration');
+        const generateBtn = document.getElementById('generateBtn');
+        const wordDisplay = document.getElementById('wordDisplay');
+        const wordElement = document.getElementById('word');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerElement = document.getElementById('timer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseText = document.getElementById('playPauseText');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Difficulty selection
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                difficultyBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                difficulty = btn.dataset.difficulty;
+            });
+        });
+
+        // Timer duration change
+        timerDurationInput.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value) || 30;
+            timerDuration = val;
+            if (!isTimerRunning) {
+                timeLeft = val;
+                updateTimerDisplay();
+            }
+        });
+
+        // Generate word
+        generateBtn.addEventListener('click', () => {
+            const words = prompts[difficulty];
+            const randomWord = words[Math.floor(Math.random() * words.length)];
+            wordElement.textContent = randomWord;
+            wordDisplay.classList.add('visible');
+            timerDisplay.classList.add('visible');
+            timeLeft = timerDuration;
+            isTimerRunning = true;
+            updateTimerDisplay();
+            startTimer();
+            updatePlayPauseButton();
+        });
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            isTimerRunning = !isTimerRunning;
+            if (isTimerRunning) {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+            updatePlayPauseButton();
+        });
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            timeLeft = timerDuration;
+            isTimerRunning = false;
+            stopTimer();
+            updateTimerDisplay();
+            updatePlayPauseButton();
+        });
+
+        function startTimer() {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    isTimerRunning = false;
+                    stopTimer();
+                    updatePlayPauseButton();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElement.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 10) {
+                timerElement.classList.add('warning');
+            } else {
+                timerElement.classList.remove('warning');
+            }
+        }
+
+        function updatePlayPauseButton() {
+            if (isTimerRunning) {
+                playPauseText.textContent = 'Pause';
+                playPauseBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+            } else {
+                playPauseText.textContent = 'Start';
+                playPauseBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+            }
+        }
+    </script>
+</body>
+</html>
